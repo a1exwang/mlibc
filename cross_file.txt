@@ -1,0 +1,9 @@
+[binaries]
+c = 'gcc'
+cpp = 'g++'
+
+[host_machine]
+system = 'a1exm05'
+cpu_family = 'x86_64'
+cpu = 'i686'
+endian = 'little'

@@ -47,4 +47,13 @@
 
 #define PTHREAD_STACK_MIN 16384
 
+#define UCHAR_MAX 0xff
+#define USHORT_MAX 0xffff
+#define UINT_MAX 0xffffffffu
+#define ULONG_MAX 0xfffffffffffffffful
+#define INT_MAX 0x7fffffff
+#define INT_MIN -0x80000000
+#define LONG_MAX 0x7fffffffffffffffl
+#define LONG_MIN -0x8000000000000000l
+
 #endif // _LIMITS_H

@@ -119,6 +119,10 @@ elif host_machine.system() == 'dripos'
 	rtdl_include_dirs += include_directories('sysdeps/dripos/include')
 	libc_include_dirs += include_directories('sysdeps/dripos/include')
 	subdir('sysdeps/dripos')
+elif host_machine.system() == 'a1exm05'
+	rtdl_include_dirs += include_directories('sysdeps/a1exm05/include')
+	libc_include_dirs += include_directories('sysdeps/a1exm05/include')
+	subdir('sysdeps/a1exm05')
 else
 	error('No sysdeps defined for OS: ' + host_machine.system())
 endif
