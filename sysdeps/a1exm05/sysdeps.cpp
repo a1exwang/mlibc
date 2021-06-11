@@ -9,6 +9,24 @@
 //#include <mlibc/thread-entry.hpp>
 //#include "cxx-syscall.hpp"
 
+#define SYSCALL2(name, nr, t1, t2) \
+int _sys_##name(t1 p1, t2 p2) {                      \
+  unsigned long retv;                          \
+  asm volatile (                    \
+    "movq %1, %%rax\n\t" \
+    "movq %2, %%rdi\n\t" \
+    "movq %3, %%rsi\n\t" \
+    "int $42 \n\t" \
+    "movq %%rax, %0\n\t" \
+    :"=r"(retv) \
+    :"r"((unsigned long)nr), "r"((unsigned long)p1), "r"((unsigned long)p2) \
+    : "%rax", "%rdi", "%rsi" \
+    );                             \
+  return retv;                                    \
+}
+
+SYSCALL2(anon_allocate, SYSCALL_NR_ANON_ALLOCATE, size_t, void **);
+
 [[noreturn]]
 void int3() {
   asm volatile("int $0x3");
@@ -19,45 +37,6 @@ void int3() {
 __ensure(!"STUB_ONLY function was called"); \
 int3();             \
 }
-//
-//#define NR_read 0
-//#define NR_write 1
-//#define NR_open 2
-//#define NR_close 3
-//#define NR_stat 4
-//#define NR_fstat 5
-//#define NR_lseek 8
-//#define NR_mmap 9
-//#define NR_mprotect 10
-//#define NR_sigaction 13
-//#define NR_rt_sigprocmask 14
-//#define NR_ioctl 16
-//#define NR_pipe 22
-//#define NR_select 23
-//#define NR_nanosleep 35
-//#define NR_getpid 39
-//#define NR_socket 41
-//#define NR_connect 42
-//#define NR_sendmsg 46
-//#define NR_recvmsg 47
-//#define NR_clone 56
-//#define NR_fork 57
-//#define NR_execve 59
-//#define NR_exit 60
-//#define NR_wait4 61
-//#define NR_fcntl 72
-//#define NR_unlink 87
-//#define NR_arch_prctl 158
-//#define NR_sys_futex 202
-//#define NR_clock_gettime 228
-//#define NR_exit_group 231
-//#define NR_tgkill 234
-//#define NR_pselect6 270
-//#define NR_pipe2 293
-//
-//#define ARCH_SET_FS	0x1002
-
-
 
 namespace mlibc {
 
@@ -74,8 +53,8 @@ int sys_tcb_set(void *pointer) {
 }
 
 int sys_anon_allocate(size_t size, void **pointer) {
-
-  return -1;
+  int ret = _sys_anon_allocate(size, pointer);
+  return ret;
 }
 int sys_anon_free(void *pointer, size_t size) {
   return -1;
