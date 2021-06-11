@@ -5,10 +5,20 @@
 #include <bits/ensure.h>
 //#include <mlibc/debug.hpp>
 #include <mlibc/all-sysdeps.hpp>
+#include <../../../../kernel-abi/include/kernel-abi/syscall_nr.h>
 //#include <mlibc/thread-entry.hpp>
 //#include "cxx-syscall.hpp"
 
-#define STUB_ONLY { __ensure(!"STUB_ONLY function was called"); __builtin_unreachable(); }
+[[noreturn]]
+void int3() {
+  asm volatile("int $0x3");
+  __builtin_unreachable();
+}
+
+#define STUB_ONLY { \
+__ensure(!"STUB_ONLY function was called"); \
+int3();             \
+}
 //
 //#define NR_read 0
 //#define NR_write 1
@@ -47,12 +57,15 @@
 //
 //#define ARCH_SET_FS	0x1002
 
+
+
 namespace mlibc {
 
 void sys_libc_log(const char *message) {
 }
 
 void sys_libc_panic() {
+  int3();
   __builtin_trap();
 }
 
@@ -61,6 +74,7 @@ int sys_tcb_set(void *pointer) {
 }
 
 int sys_anon_allocate(size_t size, void **pointer) {
+
   return -1;
 }
 int sys_anon_free(void *pointer, size_t size) {
@@ -101,30 +115,30 @@ int sys_clock_get(int clock, time_t *secs, long *nanos) {
 }
 
 int sys_stat(fsfd_target fsfdt, int fd, const char *path, int flags, struct stat *statbuf) {
-  return 0;
+  return -1;
 }
 
 extern "C" void __mlibc_signal_restore(void);
 
 int sys_sigaction(int signum, const struct sigaction *act,
                   struct sigaction *oldact) {
-  return 0;
+  return -1;
 }
 
 int sys_socket(int domain, int type, int protocol, int *fd) {
-  return 0;
+  return -1;
 }
 
 int sys_msg_send(int sockfd, const struct msghdr *msg, int flags, ssize_t *length) {
-  return 0;
+  return -1;
 }
 
 int sys_msg_recv(int sockfd, struct msghdr *msg, int flags, ssize_t *length) {
-  return 0;
+  return -1;
 }
 
 int sys_fcntl(int fd, int cmd, va_list args, int *result) {
-  return 0;
+  return -1;
 }
 
 int sys_unlink(const char *path) {
@@ -195,16 +209,18 @@ int sys_tgkill(int tgid, int tid, int sig) {
 #endif // __MLIBC_POSIX_OPTION
 
 int sys_vm_protect(void *pointer, size_t size, int prot) {
-  return 0;
+  return -1;
 }
 
 void sys_thread_exit() {
   while (1);
+  int3();
   __builtin_trap();
 }
 
 void sys_exit(int status) {
   while (1);
+
   __builtin_trap();
 }
 
@@ -214,11 +230,11 @@ void sys_exit(int status) {
 #define FUTEX_WAKE 1
 
 int sys_futex_wait(int *pointer, int expected) {
-  return 0;
+  return -1;
 }
 
 int sys_futex_wake(int *pointer) {
-  return 0;
+  return -1;
 }
 
 } // namespace mlibc
