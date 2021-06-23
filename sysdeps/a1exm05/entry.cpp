@@ -28,7 +28,10 @@ LibraryGuard::LibraryGuard() {
 }
 
 extern "C" void __mlibc_entry(uintptr_t *entry_stack, int (*main_fn)(int argc, char *argv[], char *env[])) {
-        __dlapi_enter(entry_stack);
-	auto result = main_fn(__mlibc_stack_data.argc, __mlibc_stack_data.argv, environ);
-	exit(result);
+//        __dlapi_enter(entry_stack);
+//  auto result = main_fn(__mlibc_stack_data.argc, __mlibc_stack_data.argv, environ);
+  char *argv[] = {"busybox", "sh", nullptr};
+  char *env[] = {nullptr};
+  auto result = main_fn(2, argv, env);
+  exit(result);
 }

@@ -9,10 +9,39 @@
 //#include <mlibc/thread-entry.hpp>
 //#include "cxx-syscall.hpp"
 
+#define SYSCALL0(name, nr) \
+int _sys_##name() { \
+  unsigned long retv; \
+  asm volatile ( \
+    "movq %1, %%rax\n\t" \
+    "int $42 \n\t" \
+    "movq %%rax, %0\n\t" \
+    :"=r"(retv) \
+    :"r"((unsigned long)nr) \
+    : "%rax" \
+    ); \
+  return retv; \
+}
+
+#define SYSCALL1(name, nr, t1) \
+int _sys_##name(t1 p1) { \
+  unsigned long retv; \
+  asm volatile ( \
+    "movq %1, %%rax\n\t" \
+    "movq %2, %%rdi\n\t" \
+    "int $42 \n\t" \
+    "movq %%rax, %0\n\t" \
+    :"=r"(retv) \
+    :"r"((unsigned long)nr), "r"((unsigned long)p1) \
+    : "%rax", "%rdi" \
+    ); \
+  return retv; \
+}
+
 #define SYSCALL2(name, nr, t1, t2) \
-int _sys_##name(t1 p1, t2 p2) {                      \
-  unsigned long retv;                          \
-  asm volatile (                    \
+int _sys_##name(t1 p1, t2 p2) { \
+  unsigned long retv; \
+  asm volatile ( \
     "movq %1, %%rax\n\t" \
     "movq %2, %%rdi\n\t" \
     "movq %3, %%rsi\n\t" \
@@ -21,11 +50,29 @@ int _sys_##name(t1 p1, t2 p2) {                      \
     :"=r"(retv) \
     :"r"((unsigned long)nr), "r"((unsigned long)p1), "r"((unsigned long)p2) \
     : "%rax", "%rdi", "%rsi" \
-    );                             \
-  return retv;                                    \
+    ); \
+  return retv; \
+}
+
+#define SYSCALL3(name, nr, t1, t2, t3) \
+int _sys_##name(t1 p1, t2 p2, t3 p3) { \
+  unsigned long retv; \
+  asm volatile ( \
+    "movq %1, %%rax\n\t" \
+    "movq %2, %%rdi\n\t" \
+    "movq %3, %%rsi\n\t" \
+    "movq %4, %%rdx\n\t" \
+    "int $42 \n\t" \
+    "movq %%rax, %0\n\t" \
+    :"=r"(retv) \
+    :"r"((unsigned long)nr), "r"((unsigned long)p1), "r"((unsigned long)p2), "r"((unsigned long)p3) \
+    : "%rax", "%rdi", "%rsi", "%rdx" \
+    ); \
+  return retv; \
 }
 
 SYSCALL2(anon_allocate, SYSCALL_NR_ANON_ALLOCATE, size_t, void **);
+SYSCALL3(write, SYSCALL_NR_WRITE, int, const char *, size_t);
 
 [[noreturn]]
 void int3() {
@@ -40,7 +87,14 @@ int3();             \
 
 namespace mlibc {
 
+static size_t _strlen(const char *s) {
+  size_t i = 0;
+  while (s[i++]);
+  return i;
+}
+
 void sys_libc_log(const char *message) {
+  _sys_write(2, message, _strlen(message));
 }
 
 void sys_libc_panic() {
@@ -53,6 +107,7 @@ int sys_tcb_set(void *pointer) {
 }
 
 int sys_anon_allocate(size_t size, void **pointer) {
+  sys_libc_log("sys_anon_allocate");
   int ret = _sys_anon_allocate(size, pointer);
   return ret;
 }
@@ -209,7 +264,8 @@ void sys_exit(int status) {
 #define FUTEX_WAKE 1
 
 int sys_futex_wait(int *pointer, int expected) {
-  return -1;
+  sys_libc_log("sys_futex_wait");
+  return 0;
 }
 
 int sys_futex_wake(int *pointer) {
