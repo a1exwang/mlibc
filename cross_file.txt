@@ -1,6 +1,6 @@
 [binaries]
-c = 'gcc'
-cpp = 'g++'
+c = 'gcc-10'
+cpp = 'g++-10'
 
 [host_machine]
 system = 'a1exm05'
